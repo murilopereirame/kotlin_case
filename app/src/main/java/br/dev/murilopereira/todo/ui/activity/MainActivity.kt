@@ -27,6 +27,7 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         Log.d("[RESUME]", "App Resumed")
+        Log.d("[TASKS]", AppDatabase.instance(this).taskDao().getAll().toString())
         adapter.update(AppDatabase.instance(this).taskDao().getAll())
     }
 
@@ -50,10 +51,10 @@ class MainActivity : AppCompatActivity() {
 
                         val intent = Intent(this@MainActivity, ActivitySubtaskList::class.java)
                         intent.putExtra("taskId", taskId)
+
                         startActivity(intent)
                     }.show()
             }
-            Log.d("[NEW_TASK_BUTTON]", "Hello World!");
         }
 
         val taskList = binding.taskList
