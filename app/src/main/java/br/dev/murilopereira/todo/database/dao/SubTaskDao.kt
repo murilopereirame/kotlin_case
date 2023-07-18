@@ -16,7 +16,7 @@ interface SubTaskDao {
     fun getAllByTask(id: Long): List<TaskAndSubTask>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun save(vararg subtask: SubTask)
+    fun save(subtask: SubTask): Long
 
     @Delete
     fun delete(task: SubTask)

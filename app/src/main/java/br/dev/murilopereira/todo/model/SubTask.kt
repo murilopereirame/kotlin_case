@@ -22,6 +22,6 @@ import kotlinx.parcelize.Parcelize
 class SubTask(
     @PrimaryKey(autoGenerate = true) val uid: Long = 0L,
     @ColumnInfo(name = "content") val content: String,
-    @ColumnInfo(name = "done") val done: Boolean,
+    @ColumnInfo(name = "done") var done: Boolean,
     @ColumnInfo(name = "task") val task: Long
 ) : Parcelable

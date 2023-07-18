@@ -11,7 +11,7 @@ interface TaskDao {
     fun getAll(): List<TaskAndSubTask>
 
     @Query("SELECT * FROM tasks WHERE uid IN (:ids)")
-    fun loadAllByIds(ids: IntArray): List<TaskAndSubTask>
+    fun loadAllByIds(ids: LongArray): List<TaskAndSubTask>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun save(task: Task): Long

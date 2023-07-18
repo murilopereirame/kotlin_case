@@ -1,5 +1,9 @@
 <resources>
     <string name="app_name">To Do</string>
+    <string name="new_subtask_dialog_title">Create New Sub-Task</string>
+    <string name="new_subtask_dialog_hint">Sub-Task</string>
+    <string name="new_subtask_dialog_switch">Done</string>
+    <string name="new_subtask_dialog_create">Create</string>
     <string name="new_task_dialog_title">Create New Task</string>
     <string name="new_task_title">Task Title</string>
     <string name="new_task_create">Create</string>

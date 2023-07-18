@@ -5,7 +5,6 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
-import androidx.appcompat.app.AlertDialog
 import br.dev.murilopereira.todo.R
 import br.dev.murilopereira.todo.database.AppDatabase
 import br.dev.murilopereira.todo.databinding.ActivityMainBinding
@@ -14,10 +13,12 @@ import br.dev.murilopereira.todo.model.Task
 import br.dev.murilopereira.todo.ui.adapter.TaskAdapter
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 
-
 class MainActivity : AppCompatActivity() {
     private val adapter = TaskAdapter(context = this) {
-        task -> Log.d("[TASK TAP]", task.toString())
+        task ->
+            val intent = Intent(this@MainActivity, ActivitySubtaskList::class.java)
+            intent.putExtra("taskId", task.task.uid);
+            startActivity(intent)
     }
 
     private val binding by lazy {
