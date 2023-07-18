@@ -14,7 +14,7 @@ interface TaskDao {
     fun loadAllByIds(ids: IntArray): List<TaskAndSubTask>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun save(vararg task: Task)
+    fun save(task: Task): Long
 
     @Delete
     fun delete(task: Task)
