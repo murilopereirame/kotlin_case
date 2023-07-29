@@ -7,4 +7,14 @@
     <string name="new_task_dialog_title">Create New Task</string>
     <string name="new_task_title">Task Title</string>
     <string name="new_task_create">Create</string>
+    <string name="login_email_label">Email</string>
+    <string name="login_password_label">Password</string>
+    <string name="login_signin_text">Sign In</string>
+    <string name="login_register_text">Register</string>
+
+    <string name="shared_preferences_name">sensitive_data</string>
+
+    <string name="generic_login_error_title">Login Failed</string>
+    <string name="generic_login_error_content">There was an error during login, try again later</string>
+    <string name="generic_login_error_ok">OK</string>
 </resources>
