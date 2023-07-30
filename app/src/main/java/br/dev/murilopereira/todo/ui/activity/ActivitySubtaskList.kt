@@ -27,11 +27,7 @@ class ActivitySubtaskList : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val taskId = this.intent.getLongExtra("taskId", 0);
-        this._taskId = taskId
-
-        val task: TaskAndSubTask = AppDatabase.instance(this).taskDao().loadAllByIds(longArrayOf(taskId)).first()
-        this.title = task.task.title
+        val taskId = this.intent.getStringExtra("taskId");
 
         val addSubTaskButton = binding.subtaskListAddButton
         addSubTaskButton.setOnClickListener {
@@ -43,13 +39,6 @@ class ActivitySubtaskList : AppCompatActivity() {
                         .setPositiveButton(R.string.new_subtask_dialog_create) { _, _ ->
                             val content = newSubTaskDialogInputTitle.text.toString()
                             val isDone = newSubTaskDialogDone.isChecked
-
-                            val id = AppDatabase
-                                .instance(this@ActivitySubtaskList)
-                                .subtaskDao()
-                                .save(SubTask(content = content, done = isDone, task = taskId))
-
-                            adapter.update(AppDatabase.instance(this@ActivitySubtaskList).subtaskDao().getAllByTask(taskId).first().subtasks)
                         }.show()
                 }
         }
@@ -63,7 +52,6 @@ class ActivitySubtaskList : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        adapter.update(AppDatabase.instance(this).subtaskDao().getAllByTask(this._taskId).first().subtasks)
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {

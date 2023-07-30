@@ -12,6 +12,7 @@ import br.dev.murilopereira.todo.R
 import br.dev.murilopereira.todo.databinding.ActivityLoginBinding
 import br.dev.murilopereira.todo.dto.UserDTO
 import br.dev.murilopereira.todo.ui.dialog.LoadingDialog
+import br.dev.murilopereira.todo.util.DialogSingleton
 import br.dev.murilopereira.todo.util.OkHttpSingleton
 import com.facebook.flipper.android.AndroidFlipperClient
 import com.facebook.flipper.android.utils.FlipperUtils
@@ -21,21 +22,21 @@ import com.facebook.soloader.SoLoader
 import com.squareup.moshi.Moshi
 import kotlinx.coroutines.*
 import kotlinx.coroutines.Dispatchers.IO
-import kotlinx.coroutines.Dispatchers.Main
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
-import java.lang.Thread.sleep
 
 class Login : AppCompatActivity() {
-    val JSON = "application/json; charset=utf-8".toMediaType();
+    private val JSON = "application/json; charset=utf-8".toMediaType();
 
     private val binding by lazy {
         ActivityLoginBinding.inflate(layoutInflater);
     }
+
+    private var loadingDialog: LoadingDialog? = null;
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -62,18 +63,16 @@ class Login : AppCompatActivity() {
 
             login(email, password)
         }
-        val loadingDialog = LoadingDialog(this)
+
+        loadingDialog = DialogSingleton.getLoadingDialog(this)
 
         setContentView(binding.root)
 
-        loadingDialog.setCancelable(false)
-        loadingDialog.setCanceledOnTouchOutside(false)
-        loadingDialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
-        loadingDialog.show()
+        DialogSingleton.getLoadingDialog(this).show()
 
         CoroutineScope(IO).launch {
             checkIsLogged()
-            loadingDialog.dismiss()
+            handleLoadingDialog(false)
         }
     }
 
@@ -90,7 +89,7 @@ class Login : AppCompatActivity() {
     }
 
     private fun navigateToList() {
-        val intent = Intent(this@Login, MainActivity::class.java)
+        val intent = Intent(this@Login, ActivityTaskList::class.java)
         startActivity(intent)
     }
 
@@ -105,7 +104,15 @@ class Login : AppCompatActivity() {
         }
     }
 
+    private fun handleLoadingDialog(show: Boolean) {
+        if(show)
+            runOnUiThread { loadingDialog?.show() }
+        else
+            runOnUiThread { loadingDialog?.dismiss() }
+    }
+
     private fun login(email: String, password: String) {
+        handleLoadingDialog(true)
         val client = OkHttpSingleton.instance?.getClient()
 
         val user: UserDTO = UserDTO(email, password)
@@ -115,6 +122,7 @@ class Login : AppCompatActivity() {
         client?.newCall(request)?.enqueue(object: Callback {
             override fun onFailure(call: Call, e: IOException) {
                 val message = getString(R.string.generic_login_error_content)
+                handleLoadingDialog(false)
                 return showErrorDialog(message)
             }
 
@@ -124,8 +132,10 @@ class Login : AppCompatActivity() {
 
                 var message = getString(R.string.generic_login_error_content)
 
-                if(response.body == null || responseBody.toString().isEmpty())
+                if(response.body == null || responseBody.toString().isEmpty()) {
+                    handleLoadingDialog(false)
                     return showErrorDialog(message)
+                }
 
                 val moshi: Moshi = Moshi.Builder().build()
                 val parsedResponse = moshi.adapter(Map::class.java).fromJson(
@@ -138,6 +148,7 @@ class Login : AppCompatActivity() {
                     if (parsedResponse != null && parsedResponse["message"] != null)
                         message = parsedResponse["message"].toString()
 
+                    handleLoadingDialog(false)
                     return showErrorDialog(message)
                 }
 
@@ -148,6 +159,7 @@ class Login : AppCompatActivity() {
                 editor.putLong("valid_until", SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSX", Locale.getDefault())
                     .parse(tokenData["validUntil"].toString())?.time ?: 0)
                 editor.apply()
+                handleLoadingDialog(false)
                 navigateToList()
             }
         })
