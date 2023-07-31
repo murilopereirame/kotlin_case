@@ -68,7 +68,7 @@ class Login : AppCompatActivity() {
 
         setContentView(binding.root)
 
-        DialogSingleton.getLoadingDialog(this).show()
+        loadingDialog?.show()
 
         CoroutineScope(IO).launch {
             checkIsLogged()

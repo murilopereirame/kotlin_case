@@ -11,8 +11,12 @@ import br.dev.murilopereira.todo.R
 import br.dev.murilopereira.todo.database.AppDatabase
 import br.dev.murilopereira.todo.databinding.ActivityMainBinding
 import br.dev.murilopereira.todo.databinding.NewTaskDialogBinding
+import br.dev.murilopereira.todo.dto.RequestErrorDTO
+import br.dev.murilopereira.todo.dto.RequestSuccessDTO
 import br.dev.murilopereira.todo.dto.TaskDTO
 import br.dev.murilopereira.todo.enums.ContentTypeEnum
+import br.dev.murilopereira.todo.enums.StatusType
+import br.dev.murilopereira.todo.interfaces.RequestTypeInterface
 import br.dev.murilopereira.todo.ui.adapter.TaskAdapter
 import br.dev.murilopereira.todo.ui.dialog.LoadingDialog
 import br.dev.murilopereira.todo.util.DialogSingleton
@@ -20,19 +24,23 @@ import br.dev.murilopereira.todo.util.OkHttpSingleton
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.textfield.TextInputEditText
 import com.squareup.moshi.Moshi
+import com.squareup.moshi.Types
+import com.squareup.moshi.adapters.PolymorphicJsonAdapterFactory
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 import java.io.IOException
+import javax.net.ssl.SSLEngineResult.Status
+import kotlin.streams.toList
 
 
 class ActivityTaskList : AppCompatActivity() {
     private val adapter = TaskAdapter(context = this) {
         task ->
             val intent = Intent(this@ActivityTaskList, ActivitySubtaskList::class.java)
-            intent.putExtra("taskId", task.task.uid);
+            intent.putExtra("taskId", task.uuid);
             startActivity(intent)
     }
 
@@ -42,13 +50,6 @@ class ActivityTaskList : AppCompatActivity() {
 
     private var loadingDialog: LoadingDialog? = null
     private var errorDialog: AlertDialog.Builder? = null
-
-    override fun onResume() {
-        super.onResume()
-        Log.d("[RESUME]", "App Resumed")
-        Log.d("[TASKS]", AppDatabase.instance(this).taskDao().getAll().toString())
-        adapter.update(AppDatabase.instance(this).taskDao().getAll())
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -62,6 +63,68 @@ class ActivityTaskList : AppCompatActivity() {
         taskList.adapter = adapter
 
         setContentView(binding.root)
+
+        loadTasks()
+    }
+
+    private fun loadTasks() {
+        loadingDialog = DialogSingleton.getLoadingDialog(this@ActivityTaskList)
+        loadingDialog!!.show()
+
+        val client = OkHttpSingleton.instance?.getClient()
+
+        val token =
+            getSharedPreferences(getString(R.string.shared_preferences_name), Context.MODE_PRIVATE)
+                .getString("access_token", "")
+
+        val request = Request.Builder().url("https://spring.murilopereira.dev.br:8443/tasks/list")
+            .addHeader("Authorization", "Bearer $token")
+            .get()
+            .build()
+
+        client?.newCall(request)?.enqueue(object: Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                return handleRequestFailure(null)
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                handleListTaskResponse(response)
+            }
+        })
+    }
+
+    private fun handleListTaskResponse(response: Response) {
+        val responseBody = response.body?.string()
+
+        var parsedResponse: Any? = null;
+
+        if(response.body != null && responseBody.toString().isNotEmpty()) {
+            val moshi: Moshi = Moshi.Builder().add(
+                PolymorphicJsonAdapterFactory.of(RequestTypeInterface::class.java, "status")
+                    .withSubtype(RequestSuccessDTO::class.java, StatusType.SUCCESS.name)
+                    .withSubtype(RequestErrorDTO::class.java, StatusType.ERROR.name)
+                    .withFallbackJsonAdapter(Moshi.Builder().build().adapter(Any::class.java))
+            ).build()
+
+            parsedResponse = moshi.adapter(RequestTypeInterface::class.java).fromJson(
+                responseBody.toString()
+            )
+        }
+
+        if(parsedResponse == null || !response.isSuccessful) {
+            return handleRequestFailure(parsedResponse as Map<*, *>)
+        }
+
+        if(parsedResponse is RequestSuccessDTO) {
+            val taskList = (parsedResponse.data as List<Map<String, *>>).stream().map {
+                    item -> TaskDTO(item["uuid"].toString(), item["title"].toString(), item["done"] as Boolean)
+            }.toList()
+
+            runOnUiThread {
+                adapter.update(taskList)
+                loadingDialog?.dismiss()
+            }
+        }
     }
 
     private fun showNewTaskDialog() {
@@ -113,6 +176,7 @@ class ActivityTaskList : AppCompatActivity() {
         val taskData = parsedResponse["data"] as Map<*, *>
         runOnUiThread {
             loadingDialog?.dismiss()
+            adapter.addTask(TaskDTO(taskData["uuid"].toString(), taskData["title"].toString(), taskData["done"] == true))
         }
 
         val intent = Intent(this@ActivityTaskList, ActivitySubtaskList::class.java)
