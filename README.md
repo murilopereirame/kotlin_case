@@ -1,8 +1,20 @@
 # To Do - App
 
-This app is a To Do list in Kotlin using Room for persistence. This case aims to study and remember some concepts about native Android Development and deployment.
+This app is a To Do list in Kotlin using ~~Room for persistence~~ a Rest API to store the data. 
+This case aims to study and remember some concepts about native Android Development and deployment.
 
 ## To Do
+
+### General
+- [ ] Code Refactor
+- [ ] Clean Up
+- [x] API Communication
+
+### Authentication
+- [ ] Register
+- [x] Login
+- [ ] Re-Auth when user receives a 401 Error
+- [ ] Refresh Token
 
 ### Tasks
 
