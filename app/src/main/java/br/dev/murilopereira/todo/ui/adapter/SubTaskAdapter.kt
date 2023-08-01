@@ -5,28 +5,29 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import br.dev.murilopereira.todo.databinding.SubtaskItemBinding
+import br.dev.murilopereira.todo.dto.SubTaskDTO
 import br.dev.murilopereira.todo.model.SubTask
 
 class SubTaskAdapter(
     private val context: Context,
-    subtasks: List<SubTask> = emptyList(),
-    val onClick: (subtask: SubTask, isChecked: Boolean) -> Unit = {subtask, isChecked -> }
+    subtasks: List<SubTaskDTO> = emptyList(),
+    val onClick: (subtask: SubTaskDTO, isChecked: Boolean) -> Unit = {subtask, isChecked -> }
 ): RecyclerView.Adapter<SubTaskAdapter.ViewHolder>() {
     private val subtasks = subtasks.toMutableList()
 
     inner class ViewHolder(binding: SubtaskItemBinding): RecyclerView.ViewHolder(binding.root) {
-        private lateinit var subtask: SubTask
+        private lateinit var subtask: SubTaskDTO
 
         private val checkBox = binding.taskItem
 
-        fun doBinding(subtask: SubTask) {
+        fun doBinding(subtask: SubTaskDTO) {
             this.subtask = subtask
 
             checkBox.setOnCheckedChangeListener {
                 _, isChecked -> onClick(subtask, isChecked)
             }
             checkBox.text = subtask.content
-            checkBox.isChecked = subtask.done
+            checkBox.isChecked = subtask.done == true
         }
     }
 
@@ -42,7 +43,12 @@ class SubTaskAdapter(
         holder.doBinding(subTask)
     }
 
-    fun update(subtasks: List<SubTask>) {
+    fun addSubTask(subtask: SubTaskDTO) {
+        this.subtasks.add(subtask)
+        this.notifyDataSetChanged()
+    }
+
+    fun update(subtasks: List<SubTaskDTO>) {
         this.subtasks.clear()
         this.subtasks.addAll(subtasks)
         this.notifyDataSetChanged()

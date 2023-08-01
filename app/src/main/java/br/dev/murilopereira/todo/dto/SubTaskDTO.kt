@@ -1,16 +1,18 @@
 package br.dev.murilopereira.todo.dto
 
 import com.squareup.moshi.JsonAdapter
+import com.squareup.moshi.JsonClass
 import com.squareup.moshi.Moshi
 
+@JsonClass(generateAdapter = true)
 class SubTaskDTO(
-    private var uuid:String = "",
+    var uuid:String = "",
     var content: String = "",
     var done: Boolean? = false,
-    private var tasks_idtask: String?
+    var tasks_idtask: String?
 ) {
-    private val moshi: Moshi = Moshi.Builder().build()
-    private val jsonAdapter: JsonAdapter<SubTaskDTO> = moshi.adapter(SubTaskDTO::class.java)
+    val moshi: Moshi = Moshi.Builder().build()
+    val jsonAdapter: JsonAdapter<SubTaskDTO> = moshi.adapter(SubTaskDTO::class.java)
 
     fun toJson(): String {
         return jsonAdapter.toJson(this)

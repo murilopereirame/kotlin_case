@@ -84,7 +84,7 @@ class ActivityTaskList : AppCompatActivity() {
 
         client?.newCall(request)?.enqueue(object: Callback {
             override fun onFailure(call: Call, e: IOException) {
-                return handleRequestFailure(null)
+                return handleRequestFailure(null, getString(R.string.generic_error))
             }
 
             override fun onResponse(call: Call, response: Response) {
@@ -112,7 +112,7 @@ class ActivityTaskList : AppCompatActivity() {
         }
 
         if(parsedResponse == null || !response.isSuccessful) {
-            return handleRequestFailure(parsedResponse as Map<*, *>)
+            return handleRequestFailure(if(parsedResponse != null) parsedResponse as Map<*, *> else null, getString(R.string.generic_error))
         }
 
         if(parsedResponse is RequestSuccessDTO) {
@@ -142,16 +142,15 @@ class ActivityTaskList : AppCompatActivity() {
         }
     }
 
-    private fun handleRequestFailure(response: Map<*, *>?) {
-        var message = getString(R.string.generic_new_task_error_content)
-
+    private fun handleRequestFailure(response: Map<*, *>?, message: String) {
+        var msg = message
         if(response != null) {
-            message = response["message"].toString()
+            msg = response["message"].toString()
         }
 
         runOnUiThread {
             loadingDialog?.dismiss()
-            errorDialog?.setTitle(R.string.generic_new_task_error_title)?.setMessage(message)
+            errorDialog?.setTitle(R.string.generic_new_task_error_title)?.setMessage(msg)
                 ?.setPositiveButton(R.string.generic_new_task_error_ok, null)?.show()
         }
     }
@@ -170,7 +169,7 @@ class ActivityTaskList : AppCompatActivity() {
         }
 
         if(parsedResponse == null || !response.isSuccessful) {
-            return handleRequestFailure(parsedResponse)
+            return handleRequestFailure(parsedResponse, getString(R.string.generic_new_task_error_content))
         }
 
         val taskData = parsedResponse["data"] as Map<*, *>
@@ -200,7 +199,7 @@ class ActivityTaskList : AppCompatActivity() {
 
         client?.newCall(request)?.enqueue(object: Callback {
             override fun onFailure(call: Call, e: IOException) {
-                return handleRequestFailure(null)
+                return handleRequestFailure(null, getString(R.string.generic_new_task_error_content))
             }
 
             override fun onResponse(call: Call, response: Response) {

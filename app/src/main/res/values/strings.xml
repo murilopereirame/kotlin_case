@@ -18,9 +18,10 @@
     <string name="generic_login_error_content">There was an error during login, try again later</string>
     <string name="generic_login_error_ok">OK</string>
 
+    <string name="generic_error">There was an error while processing your request</string>
+
     <string name="generic_new_task_error_title">Sorry!</string>
     <string name="generic_new_task_error_content">
-        Wow, there was an error while creating your task :(\n
-        Please, try again later</string>
+        Wow, there was an error while creating your task :(\nPlease, try again later</string>
     <string name="generic_new_task_error_ok">OK</string>
 </resources>
